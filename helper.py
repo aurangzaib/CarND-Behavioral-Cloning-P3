@@ -57,8 +57,6 @@ def load_data(file_name, image_folder):
     assert (len(features) == len(labels))
 
     shape = features.shape[1:]
-    print("shape: {}".format(shape))
-    print("total # features: {}".format(len(features)))
     n_train = int(np.ceil(len(features) * 0.8))
     x_train, y_train = features[:n_train], labels[:n_train]
     x_validation, y_validation = features[n_train:], labels[n_train:]
@@ -128,7 +126,6 @@ def generator(_dir, samples, batch_size=32):
     import numpy as np
     from sklearn.utils import shuffle
     num_samples = len(samples)
-    print("# samples: ", num_samples)
     while 1:  # Loop forever so the generator never terminates
         samples = shuffle(samples)
         for offset in range(0, num_samples, batch_size):
