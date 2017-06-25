@@ -142,7 +142,7 @@ def generator(_dir, samples, batch_size=32):
                 i_center_f, i_left_f, i_right_f = np.fliplr(i_center), np.fliplr(i_left), np.fliplr(i_right)
 
                 m_center, m_left, m_right = steer, steer + corr, steer - corr
-                m_center_f, m_left_f, m_right_f = -steer, -steer + corr, -steer - corr
+                m_center_f, m_left_f, m_right_f = -steer, -steer - corr, -steer + corr
 
                 images.extend((i_center, i_left, i_right,
                                i_center_f, i_left_f, i_right_f))

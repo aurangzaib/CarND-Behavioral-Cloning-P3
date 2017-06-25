@@ -5,7 +5,7 @@ import os
 
 cwd = os.getcwd()
 
-folder = '/data-set-3-optimized'
+folder = '/s-turn'
 csv_file, img_file = folder + '/driving_log.csv', cwd + folder + '/IMG/'
 
 train_samples, validation_samples = load_samples(csv_file, 10000)
@@ -24,8 +24,11 @@ model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
 # flatten
 model.add(Flatten())
 model.add(Dense(units=100))
+model.add(Dropout(rate=0.5))
 model.add(Dense(units=50))
+model.add(Dropout(rate=0.5))
 model.add(Dense(units=10))
+model.add(Dropout(rate=0.5))
 model.add(Dense(units=1))
 model.compile(loss='mse', optimizer='adam')
 history = model.fit_generator(train_generator,
@@ -33,7 +36,7 @@ history = model.fit_generator(train_generator,
                               validation_data=validation_generator,
                               validation_steps=len(validation_samples),
                               verbose=2,
-                              epochs=4)
+                              epochs=5)
 model.save('model.h5')
 print(model.summary())
 show_history(history.history)
