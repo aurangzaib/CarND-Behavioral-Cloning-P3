@@ -1,36 +1,39 @@
-from keras.layers import Conv2D, Lambda, Dropout, Dense, Flatten, Cropping2D
-from helper import load_samples, generator, show_history
-from keras.models import Sequential
+"""
+network implementation is similar to NVIDEA End-to-End Self Driving Car
+
+transfer learning is used -- network is trained on small data and different at a time
+this helps in keeping track what features(images) and labels(steering) are improving accuracy
+it also helps to train on a relatively small but effective dataset.
+after each training, model is saved and reused the next time.
+"""
+from helper import load_samples, generator, show_history, implement_model
+from keras.models import load_model
 import os
 
+# directories
 cwd = os.getcwd()
-
 folder = '/s-turn'
-csv_file, img_file = folder + '/driving_log.csv', cwd + folder + '/IMG/'
+csv_file = folder + '/driving_log.csv'
+img_file = cwd + folder + '/IMG/'
 
+# train and validation samples
 train_samples, validation_samples = load_samples(csv_file, 10000)
+
+# generator to get batches for train and validation
 train_generator = generator(img_file, train_samples, batch_size=32)
 validation_generator = generator(img_file, validation_samples, batch_size=32)
+
+# input shape
 shape = (160, 320, 3)
 
-model = Sequential()
-model.add(Lambda(lambda x: x / 127.5 - 1., input_shape=shape))
-model.add(Cropping2D(cropping=((70, 25), (0, 0))))
-model.add(Conv2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu'))
-model.add(Conv2D(filters=36, kernel_size=(5, 5), strides=(2, 2), activation='relu'))
-model.add(Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), activation='relu'))
-model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
-model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
-# flatten
-model.add(Flatten())
-model.add(Dense(units=100))
-model.add(Dropout(rate=0.5))
-model.add(Dense(units=50))
-model.add(Dropout(rate=0.5))
-model.add(Dense(units=10))
-model.add(Dropout(rate=0.5))
-model.add(Dense(units=1))
-model.compile(loss='mse', optimizer='adam')
+# load pre-trained (transfer learning) or retrain entire network
+use_pre_trained = True
+model = load_model('model-pre-trained.h5') if use_pre_trained else implement_model(shape)
+
+# print layers of the models
+for layer in model.layers:
+    print(layer.output_shape[1:])
+
 history = model.fit_generator(train_generator,
                               steps_per_epoch=len(train_samples),
                               validation_data=validation_generator,

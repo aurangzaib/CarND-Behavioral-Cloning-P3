@@ -122,9 +122,11 @@ def show_history(history):
 
 
 def generator(_dir, samples, batch_size=32):
-    import matplotlib.pyplot as plt
-    import numpy as np
     from sklearn.utils import shuffle
+    import matplotlib.pyplot as plt
+    from matplotlib.pyplot import imread as imr
+    from os.path import exists
+    import numpy as np
     num_samples = len(samples)
     while 1:  # Loop forever so the generator never terminates
         samples = shuffle(samples)
@@ -133,22 +135,26 @@ def generator(_dir, samples, batch_size=32):
             images = []
             measurements = []
             for batch_sample in batch_samples:
+                # steering
                 steer, corr = float(batch_sample[3]), 0.2
+                # center, left and right paths
                 center = batch_sample[0].split('/')[-1]
                 left = batch_sample[1].split('/')[-1]
                 right = batch_sample[2].split('/')[-1]
-
-                i_center, i_left, i_right = plt.imread(_dir + center), plt.imread(_dir + left), plt.imread(_dir + right)
-                i_center_f, i_left_f, i_right_f = np.fliplr(i_center), np.fliplr(i_left), np.fliplr(i_right)
-
-                m_center, m_left, m_right = steer, steer + corr, steer - corr
-                m_center_f, m_left_f, m_right_f = -steer, -steer - corr, -steer + corr
-
-                images.extend((i_center, i_left, i_right,
-                               i_center_f, i_left_f, i_right_f))
-                measurements.extend((m_center, m_left, m_right,
-                                     m_center_f, m_left_f, m_right_f))
-
+                # check for file existence
+                file_exists = exists(_dir + center) and exists(_dir + left) and exists(_dir + right)
+                if file_exists:
+                    # center, left and right images
+                    i_center, i_left, i_right = imr(_dir + center), imr(_dir + left), imr(_dir + right)
+                    # flips of the images
+                    i_center_f, i_left_f, i_right_f = np.fliplr(i_center), np.fliplr(i_left), np.fliplr(i_right)
+                    # steering for center, left and right images
+                    m_center, m_left, m_right = steer, steer + corr, steer - corr
+                    # steering for flips
+                    m_center_f, m_left_f, m_right_f = -steer, -steer - corr, -steer + corr
+                    # extend images
+                    images.extend((i_center, i_left, i_right, i_center_f))  # , i_left_f, i_right_f
+                    measurements.extend((m_center, m_left, m_right, m_center_f))  # m_left_f, m_right_f
             features = np.array(images)
             labels = np.array(measurements)
             is_debugging = False
@@ -185,3 +191,26 @@ def load_samples(csv_file, quantity):
     samples = shuffle(samples)
     samples = samples[:quantity]
     return train_test_split(samples, test_size=0.2)
+
+
+def implement_model(shape):
+    from keras.layers import Conv2D, Lambda, Dropout, Dense, Flatten, Cropping2D
+    from keras.models import Sequential
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 127.5 - 1., input_shape=shape))  # normalize
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))  # cropping
+    model.add(Conv2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 1
+    model.add(Conv2D(filters=36, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 2
+    model.add(Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 3
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 4
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 5
+    model.add(Flatten())
+    model.add(Dense(units=100))  # layer 6
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=50))  # layer 7
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=10))  # layer 8
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=1))  # layer 9
+    model.compile(optimizer='adam', loss='mse')
+    return model

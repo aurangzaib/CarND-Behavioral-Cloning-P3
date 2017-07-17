@@ -1,19 +1,19 @@
-import argparse
-import base64
+from keras import __version__ as keras_version
+from keras.models import load_model
 from datetime import datetime
-import os
-import shutil
-import numpy as np
-import socketio
-import eventlet
-import eventlet.wsgi
-from PIL import Image
 from flask import Flask
 from io import BytesIO
-
-from keras.models import load_model
+from PIL import Image
+import eventlet.wsgi
+import numpy as np
+import tensorflow
+import argparse
+import socketio
+import eventlet
+import base64
+import shutil
 import h5py
-from keras import __version__ as keras_version
+import os
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -70,7 +70,7 @@ def telemetry(sid, data):
 
         throttle = controller.update(float(speed))
 
-        print(steering_angle, throttle)
+        print("steering: {}, throttle: {}".format(steering_angle, throttle))
         send_control(steering_angle, throttle)
 
         # save frame
