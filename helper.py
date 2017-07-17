@@ -21,7 +21,7 @@ def load_disk_data(filename):
     return features, labels, shape
 
 
-def load_data(file_name, image_folder):
+def load_data(file_name, image_folder, is_debugging=True):
     from sklearn.utils import shuffle
     import numpy as np
     import csv
@@ -38,20 +38,25 @@ def load_data(file_name, image_folder):
         # form an array of lines
         for line in reader:
             samples.append(line)
-    # samples = shuffle(samples)
-    measurements, images = [], []
+    # shuffle samples
+    samples = shuffle(samples)
+    images, measurements, steering = [], [], []
     # 0 --> center
     # 1 --> left
     # 2 --> right
-    steering = []
+    # save steering values
     for line in samples:
         steering.append(float(line[3]))
-    histogram_data(steering)
+    # histogram of steering values
+    if is_debugging:
+        histogram_data(steering)
     for index, line in enumerate(samples):
-        if index is 0:
-            continue
+        if index is 0: continue
         # append center camera images
-        images, measurements = append_features_labels(cwd + image_folder, line, measurements, images)
+        images, measurements = append_features_labels(image_folder,
+                                                      line,
+                                                      measurements,
+                                                      images)
 
     features, labels = np.array(images), np.array(measurements)
     assert (len(features) == len(labels))
@@ -122,18 +127,25 @@ def show_history(history):
 
 
 def generator(_dir, samples, batch_size=32):
+    """
+    generator --> 1- infinite while loop 2- yield instead of return
+    :param _dir: directory of the images
+    :param samples: lines from csv file
+    :param batch_size: how many features and labels each time
+    :return: features, labels
+    """
     from sklearn.utils import shuffle
-    import matplotlib.pyplot as plt
     from matplotlib.pyplot import imread as imr
     from os.path import exists
     import numpy as np
     num_samples = len(samples)
-    while 1:  # Loop forever so the generator never terminates
-        samples = shuffle(samples)
+    # Loop forever so the generator never terminates
+    while 1:
+        # i think we don't need redundant shuffling
+        # samples = shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset + batch_size]
-            images = []
-            measurements = []
+            images, measurements = [], []
             for batch_sample in batch_samples:
                 # steering
                 steer, corr = float(batch_sample[3]), 0.2
@@ -141,9 +153,8 @@ def generator(_dir, samples, batch_size=32):
                 center = batch_sample[0].split('/')[-1]
                 left = batch_sample[1].split('/')[-1]
                 right = batch_sample[2].split('/')[-1]
-                # check for file existence
-                file_exists = exists(_dir + center) and exists(_dir + left) and exists(_dir + right)
-                if file_exists:
+                # check for image file existence for given path in csv
+                if exists(_dir + center) and exists(_dir + left) and exists(_dir + right):
                     # center, left and right images
                     i_center, i_left, i_right = imr(_dir + center), imr(_dir + left), imr(_dir + right)
                     # flips of the images
@@ -151,7 +162,7 @@ def generator(_dir, samples, batch_size=32):
                     # steering for center, left and right images
                     m_center, m_left, m_right = steer, steer + corr, steer - corr
                     # steering for flips
-                    m_center_f, m_left_f, m_right_f = -steer, -steer - corr, -steer + corr
+                    m_center_f, m_left_f, m_right_f = -steer, -(steer + corr), -(steer - corr)
                     # extend images
                     images.extend((i_center, i_left, i_right, i_center_f))  # , i_left_f, i_right_f
                     measurements.extend((m_center, m_left, m_right, m_center_f))  # m_left_f, m_right_f
@@ -175,25 +186,36 @@ def histogram_data(n_samples):
 
 
 def load_samples(csv_file, quantity):
+    """
+    return lines from csv file
+    each line contains left, center, right images and steering info
+    @:param csv_file: csv file path
+    @:param quantity: how many lines to be returned from csv file
+    """
     from sklearn.model_selection import train_test_split
     from sklearn.utils import shuffle
     import csv
     import os
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    cwd = os.getcwd()
     samples = []
-    with open(cwd + csv_file) as file:
-        reader = csv.reader(file)
-        for line in reader:
+    # save samples
+    with open(csv_file) as file:
+        for line in csv.reader(file):
             samples.append(line)
-    # 2 --> flips
-    # 3 --> images per line
+    # shuffle and return samples
     samples = shuffle(samples)
     samples = samples[:quantity]
     return train_test_split(samples, test_size=0.2)
 
 
 def implement_model(shape):
+    """
+    it has 5 conv layers, 3 Dense layers and 1 output layer.
+    filter depth, kernel and strides is taken from NVIDEA architecture specification.
+    image is normalized and cropped before applying network on it.
+    :param shape: shape of image
+    :return: keras dnn model
+    """
     from keras.layers import Conv2D, Lambda, Dropout, Dense, Flatten, Cropping2D
     from keras.models import Sequential
     model = Sequential()

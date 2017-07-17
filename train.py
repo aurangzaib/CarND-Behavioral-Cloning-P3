@@ -13,7 +13,7 @@ import os
 # directories
 cwd = os.getcwd()
 folder = '/s-turn'
-csv_file = folder + '/driving_log.csv'
+csv_file = cwd + folder + '/driving_log.csv'
 img_file = cwd + folder + '/IMG/'
 
 # train and validation samples
