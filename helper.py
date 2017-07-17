@@ -164,8 +164,8 @@ def generator(_dir, samples, batch_size=32):
                     # steering for flips
                     m_center_f, m_left_f, m_right_f = -steer, -(steer + corr), -(steer - corr)
                     # extend images
-                    images.extend((i_center, i_left, i_right, i_center_f))  # , i_left_f, i_right_f
-                    measurements.extend((m_center, m_left, m_right, m_center_f))  # m_left_f, m_right_f
+                    images.extend((i_center, i_left, i_right, i_center_f, i_left_f, i_right_f))
+                    measurements.extend((m_center, m_left, m_right, m_center_f, m_left_f, m_right_f))
             features = np.array(images)
             labels = np.array(measurements)
             is_debugging = False
@@ -185,7 +185,7 @@ def histogram_data(n_samples):
     pl.show()
 
 
-def load_samples(csv_file, quantity):
+def load_samples(csv_file, quantity=-1):
     """
     return lines from csv file
     each line contains left, center, right images and steering info
@@ -204,7 +204,7 @@ def load_samples(csv_file, quantity):
             samples.append(line)
     # shuffle and return samples
     samples = shuffle(samples)
-    samples = samples[:quantity]
+    samples = samples if quantity is -1 else samples[:quantity]
     return train_test_split(samples, test_size=0.2)
 
 

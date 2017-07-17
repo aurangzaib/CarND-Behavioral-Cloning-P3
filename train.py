@@ -17,7 +17,7 @@ csv_file = cwd + folder + '/driving_log.csv'
 img_file = cwd + folder + '/IMG/'
 
 # train and validation samples
-train_samples, validation_samples = load_samples(csv_file, 10000)
+train_samples, validation_samples = load_samples(csv_file)
 
 # generator to get batches for train and validation
 train_generator = generator(img_file, train_samples, batch_size=32)
@@ -34,7 +34,7 @@ model = load_model('model-pre-trained.h5') if use_pre_trained else implement_mod
 for layer in model.layers:
     print(layer.output_shape[1:])
 
-history = model.fit_generator(train_generator,
+history = model.fit_generator(generator=train_generator,
                               steps_per_epoch=len(train_samples),
                               validation_data=validation_generator,
                               validation_steps=len(validation_samples),
