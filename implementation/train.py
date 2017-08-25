@@ -7,11 +7,14 @@ it also helps to train on a relatively small but effective dataset.
 after each training, model is saved and reused the next time.
 """
 import os
+import sys
 
+sys.path.append("implementation/")
 from keras.models import load_model
 
 from configuration import Configuration
-from helper import load_samples, generator, show_history, implement_model
+from helper import load_samples, generator, show_history
+from classifier import Classifier
 
 config = Configuration().__dict__
 # directories
@@ -29,7 +32,7 @@ validation_generator = generator(img_file, validation_samples, batch_size=32)
 
 # load pre-trained (transfer learning) or retrain entire network
 use_pre_trained = False
-model = load_model('model-pre-trained.h5') if use_pre_trained else implement_model(config["shape"])
+model = load_model('../model-pre-trained.h5') if use_pre_trained else Classifier.implement_classifier(config["shape"])
 
 # # print layers of the models
 # for layer in model.layers:

@@ -2,6 +2,7 @@ import csv
 import os
 import pickle
 
+import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.image import imread as imr
@@ -222,6 +223,14 @@ def append_features_labels(_dir, line, measurements, images):
     return images, measurements
 
 
+def get_region_of_interest():
+    top, bottom = 230, 135
+    img = cv.imread("buffer/right-flip-8.png")
+    height, width = img.shape[0], img.shape[1]
+    res = img[int(top):int(top + bottom), int(0):int(width)]
+    cv.imwrite("buffer/ROI-3.png", res)
+
+
 def save_data(filename, features, labels):
     assert (len(features) == len(labels))
     data = {
@@ -232,4 +241,4 @@ def save_data(filename, features, labels):
     print("data saved to disk")
 
 
-visualize_features()
+get_region_of_interest()
