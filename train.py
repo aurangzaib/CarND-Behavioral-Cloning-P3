@@ -10,8 +10,10 @@ import os
 
 from keras.models import load_model
 
+from configuration import Configuration
 from helper import load_samples, generator, show_history, implement_model
 
+config = Configuration().__dict__
 # directories
 cwd = os.getcwd()
 folder = '/data'
@@ -25,16 +27,16 @@ train_samples, validation_samples = load_samples(csv_file)
 train_generator = generator(img_file, train_samples, batch_size=32)
 validation_generator = generator(img_file, validation_samples, batch_size=32)
 
-# input shape
-shape = (160, 320, 3)
-
 # load pre-trained (transfer learning) or retrain entire network
 use_pre_trained = False
-model = load_model('model-pre-trained.h5') if use_pre_trained else implement_model(shape)
+model = load_model('model-pre-trained.h5') if use_pre_trained else implement_model(config["shape"])
 
-# print layers of the models
-for layer in model.layers:
-    print(layer.output_shape[1:])
+# # print layers of the models
+# for layer in model.layers:
+#     print(layer.get_weights())
+
+print(model.summary())
+print(model.count_params())
 
 history = model.fit_generator(generator=train_generator,
                               steps_per_epoch=len(train_samples),
@@ -43,5 +45,4 @@ history = model.fit_generator(generator=train_generator,
                               verbose=2,
                               epochs=3)
 model.save('model.h5')
-print(model.summary())
 show_history(history.history)
