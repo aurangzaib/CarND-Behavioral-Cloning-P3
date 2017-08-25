@@ -2,7 +2,6 @@ import csv
 import os
 import pickle
 
-import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.image import imread as imr
@@ -67,35 +66,71 @@ def visualize_features():
         samples = (shuffle(samples))
 
         center, left, right = [], [], []
+        str_center, str_left, str_right = [], [], []
 
         for sample in samples:
             steering = float(sample[3])
             if steering < -.1:
                 left.append(sample[0])
+                str_left.append(steering)
             elif steering > .1:
                 right.append(sample[0])
+                str_right.append(steering)
             else:
                 center.append(sample[0])
+                str_center.append(steering)
 
         center = center[:10]
         left = left[:10]
         right = right[:10]
 
-        for i, m in enumerate(center):
-            im = cv.imread("data/" + m)
+        count = 0
+        for m, s in zip(center, str_center):
+            im = imr("data/" + m)
             imf = np.fliplr(im)
-            cv.imwrite("documentation/center-" + str(i) + ".png", im)
-            cv.imwrite("documentation/center-flip-" + str(i) + ".png", imf)
-        for i, m in enumerate(left):
-            im = cv.imread("data/" + m)
+
+            fig = plt.figure(figsize=(8, 5))
+            ax = fig.add_subplot(111)
+            plt.xticks([]), plt.yticks([])
+
+            ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
+            fig.savefig("documentation/center-{}.png".format(count))
+
+            ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
+            fig.savefig("documentation/center-flip-{}.png".format(count))
+            count += 1
+
+        count = 0
+        for m, s in zip(left, str_left):
+            im = imr("data/" + m)
             imf = np.fliplr(im)
-            cv.imwrite("documentation/left-" + str(i) + ".png", im)
-            cv.imwrite("documentation/left-flip-" + str(i) + ".png", imf)
-        for i, m in enumerate(right):
-            im = cv.imread("data/" + m)
+
+            fig = plt.figure(figsize=(8, 5))
+            ax = fig.add_subplot(111)
+            plt.xticks([]), plt.yticks([])
+
+            ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
+            fig.savefig("documentation/left-{}.png".format(count))
+
+            ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
+            fig.savefig("documentation/left-flip-{}.png".format(count))
+            count += 1
+
+        count = 0
+        for m, s in zip(right, str_right):
+            im = imr("data/" + m)
             imf = np.fliplr(im)
-            cv.imwrite("documentation/right-" + str(i) + ".png", im)
-            cv.imwrite("documentation/right-flip-" + str(i) + ".png", imf)
+
+            fig = plt.figure(figsize=(8, 5))
+            ax = fig.add_subplot(111)
+            plt.xticks([]), plt.yticks([])
+
+            ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
+            fig.savefig("documentation/right-{}.png".format(count))
+
+            ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
+            fig.savefig("documentation/right-flip-{}.png".format(count))
+            count += 1
 
 
 def load_disk_data(filename):
