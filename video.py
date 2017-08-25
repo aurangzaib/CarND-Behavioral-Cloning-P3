@@ -1,5 +1,6 @@
-from moviepy.editor import ImageSequenceClip
 import argparse
+
+from moviepy.editor import ImageSequenceClip
 
 
 def main():

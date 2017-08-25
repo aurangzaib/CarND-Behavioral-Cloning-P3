@@ -6,13 +6,15 @@ this helps in keeping track what features(images) and labels(steering) are impro
 it also helps to train on a relatively small but effective dataset.
 after each training, model is saved and reused the next time.
 """
-from helper import load_samples, generator, show_history, implement_model
-from keras.models import load_model
 import os
+
+from keras.models import load_model
+
+from helper import load_samples, generator, show_history, implement_model
 
 # directories
 cwd = os.getcwd()
-folder = '/s-turn'
+folder = '/data'
 csv_file = cwd + folder + '/driving_log.csv'
 img_file = cwd + folder + '/IMG/'
 
@@ -27,7 +29,7 @@ validation_generator = generator(img_file, validation_samples, batch_size=32)
 shape = (160, 320, 3)
 
 # load pre-trained (transfer learning) or retrain entire network
-use_pre_trained = True
+use_pre_trained = False
 model = load_model('model-pre-trained.h5') if use_pre_trained else implement_model(shape)
 
 # print layers of the models
@@ -39,7 +41,7 @@ history = model.fit_generator(generator=train_generator,
                               validation_data=validation_generator,
                               validation_steps=len(validation_samples),
                               verbose=2,
-                              epochs=5)
+                              epochs=3)
 model.save('model.h5')
 print(model.summary())
 show_history(history.history)

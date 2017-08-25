@@ -1,10 +1,133 @@
-def load_disk_data(filename):
-    from sklearn.utils import shuffle
-    import numpy as np
-    import pickle
-    import os
+import csv
+import os
+import pickle
+from os.path import exists
 
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import matplotlib.pyplot as plt
+import numpy as np
+from keras.layers import Conv2D, Lambda, Dropout, Dense, Flatten, Cropping2D
+from keras.models import Sequential
+from matplotlib.pyplot import imread as imr
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+
+def load_samples(csv_file, quantity=-1):
+    """
+    return lines from csv file
+    each line contains left, center, right images and steering info
+    @:param csv_file: csv file path
+    @:param quantity: how many lines to be returned from csv file
+    """
+
+    samples = []
+    # save samples
+    with open(csv_file) as file:
+        for line in csv.reader(file):
+            samples.append(line)
+    # shuffle and return samples
+    samples = shuffle(samples)
+    samples = samples if quantity is -1 else samples[:quantity]
+    return train_test_split(samples, test_size=0.2)
+
+
+def generator(_dir, samples, batch_size=32):
+    """
+    generator --> 1- infinite while loop 2- yield instead of return
+    :param _dir: directory of the images
+    :param samples: lines from csv file
+    :param batch_size: how many features and labels each time
+    :return: features, labels
+    """
+
+    num_samples = len(samples)
+    # Loop forever so the generator never terminates
+    while 1:
+        # i think we don't need redundant shuffling
+        # samples = shuffle(samples)
+        for offset in range(0, num_samples, batch_size):
+            batch_samples = samples[offset:offset + batch_size]
+            images, measurements = [], []
+            for batch_sample in batch_samples:
+                # steering
+                steer, corr = float(batch_sample[3]), 0.2
+                # center, left and right paths
+                center = batch_sample[0].split('/')[-1]
+                left = batch_sample[1].split('/')[-1]
+                right = batch_sample[2].split('/')[-1]
+                # check for image file existence for given path in csv
+                if exists(_dir + center) and exists(_dir + left) and exists(_dir + right):
+                    # center, left and right images
+                    i_center, i_left, i_right = imr(_dir + center), imr(_dir + left), imr(_dir + right)
+                    # flips of the images
+                    i_center_f, i_left_f, i_right_f = np.fliplr(i_center), np.fliplr(i_left), np.fliplr(i_right)
+                    # steering for center, left and right images
+                    m_center, m_left, m_right = steer, steer + corr, steer - corr
+                    # steering for flips
+                    m_center_f, m_left_f, m_right_f = -steer, -(steer + corr), -(steer - corr)
+                    # extend images
+                    images.extend((i_center, i_left, i_right, i_center_f, i_left_f, i_right_f))
+                    measurements.extend((m_center, m_left, m_right, m_center_f, m_left_f, m_right_f))
+            features = np.array(images)
+            labels = np.array(measurements)
+            is_debugging = False
+            if is_debugging:
+                import cv2
+                for feature in features:
+                    cv2.imshow("center: ", feature)
+                    cv2.waitKey()
+            yield shuffle(features, labels)
+
+
+def histogram_data(n_samples):
+    x = n_samples
+    plt.hist(x, bins=int(len(n_samples) / 10))
+    plt.ylabel('Probability')
+    plt.show()
+
+
+def show_history(history):
+    plt.plot(history['loss'])
+    plt.plot(history['val_loss'])
+    plt.title('model mean squared error loss')
+    plt.ylabel('mean squared error loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'], loc='upper right')
+    plt.show()
+
+
+def implement_model(shape):
+    """
+    it has 5 conv layers, 3 Dense layers and 1 output layer.
+    filter depth, kernel and strides is taken from NVIDEA architecture specification.
+    image is normalized and cropped before applying network on it.
+    :param shape: shape of image
+    :return: keras dnn model
+    """
+
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 127.5 - 1., input_shape=shape))  # normalize
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))  # cropping
+    model.add(Conv2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 1
+    model.add(Conv2D(filters=36, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 2
+    model.add(Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 3
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 4
+    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 5
+    model.add(Flatten())
+    model.add(Dense(units=100))  # layer 6
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=50))  # layer 7
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=10))  # layer 8
+    model.add(Dropout(rate=0.5))
+    model.add(Dense(units=1))  # layer 9
+    model.compile(optimizer='adam', loss='mse')
+    return model
+
+
+def load_disk_data(filename):
     cwd = os.getcwd()
 
     with open(cwd + filename, mode='rb') as f:
@@ -22,13 +145,6 @@ def load_disk_data(filename):
 
 
 def load_data(file_name, image_folder, is_debugging=True):
-    from sklearn.utils import shuffle
-    import numpy as np
-    import csv
-    import os
-
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
     cwd = os.getcwd()
     print("cwd: {}".format(cwd))
     samples = []
@@ -73,8 +189,6 @@ def load_data(file_name, image_folder, is_debugging=True):
 
 
 def append_features_labels(_dir, line, measurements, images):
-    import matplotlib.pyplot as plt
-    import numpy as np
     center, left, right = line[0].split('/')[-1], line[1].split('/')[-1], line[2].split('/')[-1]
     steer, corr = float(line[3]), 0.2
     # images and flips
@@ -105,7 +219,6 @@ def append_features_labels(_dir, line, measurements, images):
 
 
 def save_data(filename, features, labels):
-    import pickle
     assert (len(features) == len(labels))
     data = {
         'features': features,
@@ -113,126 +226,3 @@ def save_data(filename, features, labels):
     }
     pickle.dump(data, open(filename, "wb"))
     print("data saved to disk")
-
-
-def show_history(history):
-    import matplotlib.pyplot as plt
-    plt.plot(history['loss'])
-    plt.plot(history['val_loss'])
-    plt.title('model mean squared error loss')
-    plt.ylabel('mean squared error loss')
-    plt.xlabel('epoch')
-    plt.legend(['training set', 'validation set'], loc='upper right')
-    plt.show()
-
-
-def generator(_dir, samples, batch_size=32):
-    """
-    generator --> 1- infinite while loop 2- yield instead of return
-    :param _dir: directory of the images
-    :param samples: lines from csv file
-    :param batch_size: how many features and labels each time
-    :return: features, labels
-    """
-    from sklearn.utils import shuffle
-    from matplotlib.pyplot import imread as imr
-    from os.path import exists
-    import numpy as np
-    num_samples = len(samples)
-    # Loop forever so the generator never terminates
-    while 1:
-        # i think we don't need redundant shuffling
-        # samples = shuffle(samples)
-        for offset in range(0, num_samples, batch_size):
-            batch_samples = samples[offset:offset + batch_size]
-            images, measurements = [], []
-            for batch_sample in batch_samples:
-                # steering
-                steer, corr = float(batch_sample[3]), 0.2
-                # center, left and right paths
-                center = batch_sample[0].split('/')[-1]
-                left = batch_sample[1].split('/')[-1]
-                right = batch_sample[2].split('/')[-1]
-                # check for image file existence for given path in csv
-                if exists(_dir + center) and exists(_dir + left) and exists(_dir + right):
-                    # center, left and right images
-                    i_center, i_left, i_right = imr(_dir + center), imr(_dir + left), imr(_dir + right)
-                    # flips of the images
-                    i_center_f, i_left_f, i_right_f = np.fliplr(i_center), np.fliplr(i_left), np.fliplr(i_right)
-                    # steering for center, left and right images
-                    m_center, m_left, m_right = steer, steer + corr, steer - corr
-                    # steering for flips
-                    m_center_f, m_left_f, m_right_f = -steer, -(steer + corr), -(steer - corr)
-                    # extend images
-                    images.extend((i_center, i_left, i_right, i_center_f, i_left_f, i_right_f))
-                    measurements.extend((m_center, m_left, m_right, m_center_f, m_left_f, m_right_f))
-            features = np.array(images)
-            labels = np.array(measurements)
-            is_debugging = False
-            if is_debugging:
-                import cv2
-                for feature in features:
-                    cv2.imshow("center: ", feature)
-                    cv2.waitKey()
-            yield shuffle(features, labels)
-
-
-def histogram_data(n_samples):
-    import matplotlib.pyplot as pl
-    x = n_samples
-    pl.hist(x, bins=int(len(n_samples) / 10))
-    pl.ylabel('Probability')
-    pl.show()
-
-
-def load_samples(csv_file, quantity=-1):
-    """
-    return lines from csv file
-    each line contains left, center, right images and steering info
-    @:param csv_file: csv file path
-    @:param quantity: how many lines to be returned from csv file
-    """
-    from sklearn.model_selection import train_test_split
-    from sklearn.utils import shuffle
-    import csv
-    import os
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    samples = []
-    # save samples
-    with open(csv_file) as file:
-        for line in csv.reader(file):
-            samples.append(line)
-    # shuffle and return samples
-    samples = shuffle(samples)
-    samples = samples if quantity is -1 else samples[:quantity]
-    return train_test_split(samples, test_size=0.2)
-
-
-def implement_model(shape):
-    """
-    it has 5 conv layers, 3 Dense layers and 1 output layer.
-    filter depth, kernel and strides is taken from NVIDEA architecture specification.
-    image is normalized and cropped before applying network on it.
-    :param shape: shape of image
-    :return: keras dnn model
-    """
-    from keras.layers import Conv2D, Lambda, Dropout, Dense, Flatten, Cropping2D
-    from keras.models import Sequential
-    model = Sequential()
-    model.add(Lambda(lambda x: x / 127.5 - 1., input_shape=shape))  # normalize
-    model.add(Cropping2D(cropping=((70, 25), (0, 0))))  # cropping
-    model.add(Conv2D(filters=24, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 1
-    model.add(Conv2D(filters=36, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 2
-    model.add(Conv2D(filters=48, kernel_size=(5, 5), strides=(2, 2), activation='relu'))  # layer 3
-    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 4
-    model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # layer 5
-    model.add(Flatten())
-    model.add(Dense(units=100))  # layer 6
-    model.add(Dropout(rate=0.5))
-    model.add(Dense(units=50))  # layer 7
-    model.add(Dropout(rate=0.5))
-    model.add(Dense(units=10))  # layer 8
-    model.add(Dropout(rate=0.5))
-    model.add(Dense(units=1))  # layer 9
-    model.compile(optimizer='adam', loss='mse')
-    return model

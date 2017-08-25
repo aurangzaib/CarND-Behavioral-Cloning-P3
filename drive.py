@@ -1,19 +1,19 @@
+import argparse
+import base64
+import os
+import shutil
+from datetime import datetime
+from io import BytesIO
+
+import eventlet
+import eventlet.wsgi
+import h5py
+import numpy as np
+import socketio
+from PIL import Image
+from flask import Flask
 from keras import __version__ as keras_version
 from keras.models import load_model
-from datetime import datetime
-from flask import Flask
-from io import BytesIO
-from PIL import Image
-import eventlet.wsgi
-import numpy as np
-import tensorflow
-import argparse
-import socketio
-import eventlet
-import base64
-import shutil
-import h5py
-import os
 
 sio = socketio.Server()
 app = Flask(__name__)
