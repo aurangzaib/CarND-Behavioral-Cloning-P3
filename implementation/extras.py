@@ -24,7 +24,7 @@ def load_disk_data(filename):
     return features, labels, shape
 
 
-def load_data(file_name, image_folder, is_debugging=True):
+def load_data(file_name, image_folder):
     cwd = os.getcwd()
     print("cwd: {}".format(cwd))
     samples = []
@@ -59,10 +59,12 @@ def load_data(file_name, image_folder, is_debugging=True):
     n_train = int(np.ceil(len(features) * 0.8))
     x_train, y_train = features[:n_train], labels[:n_train]
     x_validation, y_validation = features[n_train:], labels[n_train:]
-    # print("Saving....")
-    # save_data('train.p', x_train, y_train)
-    # save_data('validation.p', x_validation, y_validation)
-    # print("Saved")
+
+    print("Saving....")
+    save_data('train.p', x_train, y_train)
+    save_data('validation.p', x_validation, y_validation)
+    print("Saved")
+
     return features, labels, shape
 
 
@@ -86,7 +88,6 @@ def append_features_labels(_dir, line, measurements, images):
         cv2.waitKey()
     # measurements and flips
     m_center, m_left, m_right = steer, steer + corr, steer - corr
-    m_center_f, m_left_f, m_right_f = -steer, -steer + corr, -steer - corr
     # extend the arrays
     images.extend((im_center, im_left, im_right))
     # im_center_f, im_left_f, im_right_f))

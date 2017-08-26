@@ -111,11 +111,11 @@ class Helper:
     def show_history(history):
         plt.plot(history['loss'])
         plt.plot(history['val_loss'])
-        plt.title('model mean squared error loss')
+        plt.title('Model Metrics')
         plt.ylabel('mean squared error loss')
         plt.xlabel('epoch')
         plt.legend(['training set', 'validation set'], loc='upper right')
-        plt.pause(10)
+        plt.show()
 
     @staticmethod
     def get_model_summary(model):

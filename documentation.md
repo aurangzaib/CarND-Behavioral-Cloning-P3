@@ -24,32 +24,63 @@ The steps of the project are as follows:
 
 #### i- Histogram Visualization:
 
-![alt text](./documentation/steering-distribution-center-only.png)
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/visualization.py`  |
+| Method  | `Visualization.visualize_histogram`      |
 
-![alt text](./documentation/steering-distribution-center-only-0-removed.png)
+![alt text](./documentation/steering-distribution-udacity.png)
 
-![alt text](./documentation/steering-distribution-center-left-right.png)
+![alt text](./documentation/steering-distribution-udacity-0-removed.png)
 
-![alt text](./documentation/steering-distribution-center-left-right-flipped.png)
+![alt text](./documentation/steering-distribution-augmented-0-removed.png)
+
+![alt text](./documentation/steering-distribution-augmented-all-cameras-0-removed.png)
+
+![alt text](./documentation/steering-distribution-augmented-all-cameras-flips-0-removed.png)
 
 #### ii- Data Visualization:
+
+
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/visualization.py`  |
+| Method  | `Visualization.visualize_features`      |
 
 
 ![alt text](./documentation/data-exploration-1.png)
 
 ![alt text](./documentation/data-exploration-2.png)
 
+![alt text](./documentation/data-exploration-3.png)
 
-#### Cropping:
+![alt text](./documentation/data-exploration-4.png)
+
+
+#### iii- Cropping:
+
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/visualization.py`  |
+| Method  | `Visualization.visualize_roi`      |
 
 ![alt text](./documentation/ROI-1.png)
 
 ![alt text](./documentation/ROI-2.png)
 
+![alt text](./documentation/ROI-3.png)
+
+![alt text](./documentation/ROI-4.png)
+
 
 ### 2- Neural Network and Training Strategy:
 
 #### i- Model Architecture
+
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/classifier.py`  |
+| Method  | `Classifier.implement_classifier`      |
 
 -	NVIDEA DNN architecture.
 -	5 Convolution layers.

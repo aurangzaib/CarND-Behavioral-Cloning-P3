@@ -3,7 +3,7 @@ import os
 cwd = os.getcwd()
 
 
-class Configuration():
+class Configuration:
     def __init__(self):
         # flags
         self.allow_data_flips = False

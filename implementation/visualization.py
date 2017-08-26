@@ -1,6 +1,8 @@
 import csv
+import glob
 
 import cv2 as cv
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.image import imread as imr
@@ -8,7 +10,7 @@ from sklearn.utils import shuffle
 
 from configuration import Configuration
 
-conf = Confuration().__dict__
+conf = Configuration().__dict__
 
 
 class Visualization:
@@ -22,12 +24,17 @@ class Visualization:
         samples = []
         # save samples
         corr = 0.2
-        with open(conf["csv_file"]) as file:
-            for line in csv.reader(file):
-                steering = float(line[3])
-                if steering != 0:
-                    samples.extend((steering, steering + corr, steering - corr))
-                    samples.extend((-steering, -(steering + corr), -(steering - corr)))
+        folders = [conf["folder1"], conf["folder2"], conf["folder3"], conf["folder4"]]
+        for folder in folders:
+            csv_file = folder + '/driving_log.csv'
+            with open(csv_file) as file:
+                for line in csv.reader(file):
+                    steering = float(line[3])
+                    if steering != 0:
+                        samples.append(steering)
+                        samples.extend((steering, steering + corr, steering - corr))
+                        samples.extend((-steering, -(steering + corr), -(steering - corr)))
+            print("samples: {}".format(len(samples)))
 
         unique_classes, n_samples = np.unique(samples,
                                               return_index=False,
@@ -38,24 +45,23 @@ class Visualization:
         print("mean: {}, std: {}".format(mu, sigma))
 
         width = 0.01  # 1 / len(unique_classes)
-        fig = plt.figure(figsize=(8, 5))
+        fig = plt.figure(figsize=(8, 3))
         ax = fig.add_subplot(111)
         ax.set_title('Samples Distribution')
         ax.set_xlabel('Steering Angle')
         ax.set_ylabel('Number of Samples')
         plt.bar(unique_classes, n_samples, width, color="blue")
-        fig.savefig('{}steering-distribution-center-left-right-flipped.png'.format(conf["buffer_folder"]))
+        fig.savefig('{}steering-distribution-augmented-all-cameras-flips-0-removed.png'.format(conf["buffer_folder"]))
 
+    # steering-distribution-center-left-right-flipped
     @staticmethod
-    def visualize_features():
+    def visualize_features(folder="../dataset-1/"):
         """
         visualize the steering angles distribution using histogram
         :return:
         """
-        with open(conf["csv_file"]) as file:
+        with open("{}driving_log.csv".format(folder)) as file:
             samples = []
-            corr = 0.2
-
             # store all samples
             for line in csv.reader(file):
                 samples.append(line)
@@ -84,7 +90,7 @@ class Visualization:
 
             count = 0
             for m, s in zip(center, str_center):
-                im = imr(conf["folder"] + m)
+                im = imr(folder + m)
                 imf = np.fliplr(im)
 
                 fig = plt.figure(figsize=(8, 5))
@@ -92,15 +98,15 @@ class Visualization:
                 plt.xticks([]), plt.yticks([])
 
                 ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
-                fig.savefig("{}center-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}center-{}.png".format(conf["buffer_folder"] + "track2/", count))
 
                 ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
-                fig.savefig("{}center-flip-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}center-flip-{}.png".format(conf["buffer_folder"] + "track2/", count))
                 count += 1
 
             count = 0
             for m, s in zip(left, str_left):
-                im = imr(conf["folder"] + m)
+                im = imr(folder + m)
                 imf = np.fliplr(im)
 
                 fig = plt.figure(figsize=(8, 5))
@@ -108,15 +114,15 @@ class Visualization:
                 plt.xticks([]), plt.yticks([])
 
                 ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
-                fig.savefig("{}left-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}left-{}.png".format(conf["buffer_folder"] + "track2/", count))
 
                 ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
-                fig.savefig("{}left-flip-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}left-flip-{}.png".format(conf["buffer_folder"] + "track2/", count))
                 count += 1
 
             count = 0
             for m, s in zip(right, str_right):
-                im = imr(conf["folder"] + m)
+                im = imr(folder + m)
                 imf = np.fliplr(im)
 
                 fig = plt.figure(figsize=(8, 5))
@@ -124,22 +130,33 @@ class Visualization:
                 plt.xticks([]), plt.yticks([])
 
                 ax.set_title('Steering: {:.3f}'.format(s)), plt.imshow(im)
-                fig.savefig("{}right-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}right-{}.png".format(conf["buffer_folder"] + "track2/", count))
 
                 ax.set_title('Steering: {:.3f}'.format(-s)), plt.imshow(imf)
-                fig.savefig("{}right-flip-{}.png".format(conf["doc_folder"], count))
+                fig.savefig("{}right-flip-{}.png".format(conf["buffer_folder"] + "track2/", count))
                 count += 1
 
     @staticmethod
     def visualize_roi():
         top, bottom = 230, 135
-        img = cv.imread("{}right-flip-8.png".format(conf["buffer_folder"]))
+        left, right = 70, 70
+        track = "track1"
+        img = cv.imread("{}{}/right-flip-4.png".format(conf["buffer_folder"], track))
         height, width = img.shape[0], img.shape[1]
-        res = img[int(top):int(top + bottom), int(0):int(width)]
-        cv.imwrite("{}ROI-3.png".format(conf["buffer_folder"]), res)
+        res = img[int(top):int(top + bottom), int(left):int(width - right)]
+        cv.imwrite("{}{}/ROI-4.png".format(conf["buffer_folder"], track), res)
 
-        # @staticmethod
-        # def training_data_summary():
+    @staticmethod
+    def reduce_images_height():
+        top, bottom = 70, 70
+        left, right = 70, 70
+        imgs = glob.glob("{}data-exploration*".format(conf["doc_folder"]))
+        for filename in imgs:
+            im = imr(filename)
+            im_roi = np.copy(im)
+            height, width = im_roi.shape[0], im_roi.shape[1]
+            res = im_roi[int(top):int(height - bottom), int(left):int(width - right)]
+            mpimg.imsave(filename, res)
 
 
-Visualization.visualize_histogram()
+Visualization.visualize_roi()
