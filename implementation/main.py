@@ -1,7 +1,7 @@
 """
 network implementation is similar to NVIDEA End-to-End Self Driving Car
 
-transfer learning is used -- network is trained on small data and different at a time
+transfer learning is used -- network is trained on small and different dataset at a time
 this helps in keeping track what features(images) and labels(steering) are improving accuracy
 it also helps to train on a relatively small but effective dataset.
 after each training, model is saved and reused the next time.

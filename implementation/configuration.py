@@ -20,7 +20,7 @@ class Configuration():
         self.folder4 = "../dataset-4"
 
         # selected folder
-        self.selected_folder = self.folder2
+        self.selected_folder = self.folder4
 
         # csv file
         self.selected_csv_file = self.selected_folder + '/driving_log.csv'

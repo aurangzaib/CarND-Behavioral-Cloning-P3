@@ -4,9 +4,8 @@
 | Note    | |
 |:-----------|:-------------|
 | **Source Code**  | https://github.com/aurangzaib/CarND-Behavioral-Cloning-P3  |
-| **How to run**  | `cd implementation && python main.py`      |
-
-
+| **How to train**  | `cd implementation && python main.py`      |
+| **How to test**  | `python drive.py model.h5`      |
 
 The steps of the project are as follows:
 

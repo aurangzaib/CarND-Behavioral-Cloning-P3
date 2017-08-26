@@ -5,7 +5,6 @@ import shutil
 from datetime import datetime
 from io import BytesIO
 
-import eventlet
 import eventlet.wsgi
 import h5py
 import numpy as np
@@ -43,13 +42,12 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 30
+set_speed = 20
 controller.set_desired(set_speed)
 
 
 @sio.on('telemetry')
 def telemetry(sid, data):
-    import cv2
     if data:
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
@@ -59,13 +57,9 @@ def telemetry(sid, data):
         speed = data["speed"]
         # The current image from the center camera of the car
         imgString = data["image"]
+
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        is_debugging = False
-        if is_debugging:
-            cropped_image = image_array[70:-25, :]
-            cv2.imshow("cropped view", cropped_image)
-            cv2.waitKey(1)
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))

@@ -10,3 +10,6 @@ __pycache__
 s-turn
 new_teach
 .vscode
+autonomous_forward
+autonomous_reverse
+*.zip
