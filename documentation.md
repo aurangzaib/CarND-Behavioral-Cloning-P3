@@ -7,7 +7,7 @@
 | **How to train**  | `cd implementation && python main.py`      |
 | **How to test**  | `python drive.py model.h5`      |
 
-The steps of the project are as follows:
+The goals of the project are as follows:
 
 -	Use the simulator to collect data of good driving behavior.
 
@@ -120,22 +120,20 @@ Normalization and cropping steps are part of the `Keras` model by adding a cropp
 |:-----------|:-------------|
 | File  | `implementation/classifier.py`  |
 | Method  | `Classifier.implement_classifier`      |
+| Model  | __NVIDEA__ SDC CNN Architecture      |
+| Reference  | Architecture: https://arxiv.org/pdf/1604.07316.pdf      |
+|   | Dropout: https://www.cs.toronto.edu/~hinton/absps/JMLRdropout.pdf      |
 
--	NVIDEA DNN architecture.
--	5 Convolution layers.
--	3 Fully Connected (Dense) layers.
+The architecture is a modified form of the model used by NVIDEA and described in a paper __End to End Learning for Self-Driving Cars__:
+-	5 Convolution layers with respective Filters and Kernels.
+-	3 Fully Connected (Dense) layers followed by Dropouts.
 -	1 Output layer.
-- 	Normalization:
-	-	To center the mean and standard deviation around 0.
--	Cropping:
-	- To remove the areas of the image which are not useful for training the classifier e.g. sky etc.
--	Dropouts:
-	- Used with Dense layers with keep probability of 0.5 to reduce the overfit.
-- Backpropogation:
-	- Adam Optimizer is used to update the weights and Mean Square Error (MSE) is used to keep track of the errors.
 
 
-| Pipeline    |Filter  |  Kernel | Dropout  |  Output Dimension | Parameters |
+![alt text](./documentation/NIVIA-SDC-CNN.png)
+
+
+| Network    |Filter  |  Kernel | Dropout  |  Output Dimension | Parameters |
 |:-----------|:-------------|:-------------|:-------------|:-------------|:-------------|
 | Normalization  |   |  |  |  |  0 | 
 | Cropping  | 24|   |98.7  |160,320,3  |0  |
@@ -149,3 +147,71 @@ Normalization and cropping steps are part of the `Keras` model by adding a cropp
 | Dense2  |   |  |0.5  |50  |5050  |
 | Dense2  |   |  |0.5  |10  | 510 |
 | Output  |   |  |  |1  | 11 |
+
+
+#### ii- Training Strategy:
+
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/helper.py`  |
+| Method  | `Helper.generator`      |
+| Method  | `Helper.get_model`       |
+| Method  | `Helper.save_model`       |
+| Method  | `Helper.get_model_summary`       |
+
+##### Generator:
+
+-	The dataset is very large where each image's dimension is `160x320x3`. Also, in preprocessing the data type is changed from `int` to `float` making the size of dataset even larger.
+
+-	Using generator we can pull pieces of data on the fly only when we need them. Size of the data is specified by `batch size`.
+
+##### Transfer Learning
+
+Trasnfer learning technique can be used to train and test classifier on a selected dataset at a time and used the optimzed weights the next time on a new dataset.  The technique helped in spoting and fixing the problems in the training process very efficiently.
+
+The steps are as follows:
+
+-	Train on a dataset and save the model.
+-	Test the model and see which areas of the track the car has problem navigating on.
+-	Collect data of that region of the road and train the classifier again by using the weights, optimizer and loss from the previously trained network.
+
+##### Dropouts:
+
+Dropout is used after each Fully Connected (Dense) layer. 
+
+Dropout was proposed by Geoffrey Hinton et al. It is a technique to reduce overfit by randomly dropping the few units so that the network can never rely on any given activation. Dropout helps network to learn redundant representation of everything to make sure some of the information retain.
+
+
+| Dropout Parameter    |  |
+|:-----------|:-------------|
+| Keep Probability  | 0.5  |
+
+
+##### Backpropogation:
+
+Adam Optimizer is used to update the weights. Mean Square Error (MSE) is used to keep track of the errors.
+    
+
+### 3- Testing the network:
+
+| Source Code Reference    |  |
+|:-----------|:-------------|
+| File  | `implementation/video.py`  |
+| Method  | `main`      |
+
+After training the network, it is tested on the track by allowing the car autonomously and validating that the car doesn't drop off the road.
+
+Udacity provided a simulator which acts as a server which provides stream of the `image frames` as features and the network predicts the `steering` values as labels.
+
+The inferred `steering` values are used to navigate the car on the track.
+
+Here is the video of the car driving autonomously on the track 1:
+
+[![Behaviour Cloning Track 1](http://img.youtube.com/vi/eA-kU__V18w/0.jpg)](http://www.youtube.com/watch?v=eA-kU__V18w)
+
+
+Here is the video of the car driving autonomously on the track 1 in opposite direction:
+
+
+[![Behaviour Cloning Track 1 Backwards](http://img.youtube.com/vi/8rpVWpT8omc/0.jpg)](http://www.youtube.com/watch?v=8rpVWpT8omc)
+
