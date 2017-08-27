@@ -200,6 +200,8 @@ Adam Optimizer is used to update the weights. Mean Square Error (MSE) is used to
 |:-----------|:-------------|
 | File  | `implementation/video.py`  |
 | Method  | `main`      |
+| Video 1  | `autonomous_forward.mp4`  |
+| Video 2  | `autonomous_reverse.mp4`      |
 
 After training the network, it is tested on the track by allowing the car autonomously and validating that the car doesn't drop off the road.
 

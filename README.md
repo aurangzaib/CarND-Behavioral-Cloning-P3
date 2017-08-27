@@ -385,6 +385,8 @@ model.compile(optimizer=conf["optimizer"], loss=conf["loss"])
 |:-----------|:-------------|
 | File  | `implementation/video.py`  |
 | Method  | `main`      |
+| Video 1  | `autonomous_forward.mp4`  |
+| Video 2  | `autonomous_reverse.mp4`      |
 
 After training the network, it is tested on the track by allowing the car autonomously and validating that the car doesn't drop off the road.
 
