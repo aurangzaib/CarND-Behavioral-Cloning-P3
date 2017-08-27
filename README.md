@@ -367,6 +367,8 @@ model.add(Dropout(rate=conf["rate"]))
 
 ```
 
+![alt text](./documentation/Dropout.png)
+
 ##### Backpropogation:
 
 Adam Optimizer is used to update the weights. Mean Square Error (MSE) is used to keep track of the errors.

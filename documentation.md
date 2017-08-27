@@ -187,6 +187,8 @@ Dropout was proposed by Geoffrey Hinton et al. It is a technique to reduce overf
 | Keep Probability  | 0.5  |
 
 
+![alt text](./documentation/Dropout.png)
+
 ##### Backpropogation:
 
 Adam Optimizer is used to update the weights. Mean Square Error (MSE) is used to keep track of the errors.
