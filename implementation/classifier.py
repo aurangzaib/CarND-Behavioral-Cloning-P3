@@ -18,7 +18,7 @@ class Classifier:
         model = Sequential()
         shape = conf["shape"]
         # normalize
-        model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=shape))
+        model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=shape))
         # cropping to reduce sky and other unnecessary features
         model.add(Cropping2D(cropping=(conf["roi"])))
         # layer 1

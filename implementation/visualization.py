@@ -6,6 +6,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.image import imread as imr
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import shuffle
 
 from configuration import Configuration
@@ -36,13 +37,21 @@ class Visualization:
                         samples.extend((-steering, -(steering + corr), -(steering - corr)))
             print("samples: {}".format(len(samples)))
 
+        mu, sigma = np.mean(samples), np.std(samples)
+        print("mean: {}, std: {}".format(mu, sigma))
+
+        samples = np.array(samples)
+        samples = samples.reshape(-1, 1)
+
+        samples = StandardScaler().fit_transform(samples)
+
+        mu, sigma = np.mean(samples), np.std(samples)
+        print("mean norm: {}, std norm: {}".format(mu, sigma))
+
         unique_classes, n_samples = np.unique(samples,
                                               return_index=False,
                                               return_inverse=False,
                                               return_counts=True)
-
-        mu, sigma = np.mean(samples), np.std(samples)
-        print("mean: {}, std: {}".format(mu, sigma))
 
         width = 0.01  # 1 / len(unique_classes)
         fig = plt.figure(figsize=(8, 3))
@@ -50,8 +59,10 @@ class Visualization:
         ax.set_title('Samples Distribution')
         ax.set_xlabel('Steering Angle')
         ax.set_ylabel('Number of Samples')
+
         plt.bar(unique_classes, n_samples, width, color="blue")
-        fig.savefig('{}steering-distribution-augmented-all-cameras-flips-0-removed.png'.format(conf["buffer_folder"]))
+        fig.savefig('{}steering-distribution-augmented-all-cameras-flips-0-removed-normalized.png'.format(
+            conf["buffer_folder"]))
 
     # steering-distribution-center-left-right-flipped
     @staticmethod
@@ -159,4 +170,4 @@ class Visualization:
             mpimg.imsave(filename, res)
 
 
-Visualization.visualize_roi()
+Visualization.visualize_histogram()

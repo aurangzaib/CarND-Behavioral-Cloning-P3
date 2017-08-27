@@ -22,6 +22,12 @@ The steps of the project are as follows:
 
 ### 1-	Data Collection & Augmentation:
 
+The data is collected in different stages and are as follows:
+-	Dataset provided by Udacity for Track 1.
+-	Dataset for all the curves and turns in the track.
+-	Dataset for all the curves and turns in the track by driving the car in the opposite direction.
+-	Dataset for the straight roads in the track.
+
 #### i- Histogram Visualization:
 
 | Source Code Reference    |  |
@@ -29,40 +35,73 @@ The steps of the project are as follows:
 | File  | `implementation/visualization.py`  |
 | Method  | `Visualization.visualize_histogram`      |
 
+Following histogram shows `steering` distribution in the Udacity dataset.
+
 ![alt text](./documentation/steering-distribution-udacity.png)
+
+To better visualize, this is the histogram with the near 0 `steering` values removed i.e. car going straight without much `steering`.
 
 ![alt text](./documentation/steering-distribution-udacity-0-removed.png)
 
+This histogram shows the distribution of `steering` values after appending the data with datasets discussed above.
+
 ![alt text](./documentation/steering-distribution-augmented-0-removed.png)
+
+After including the data from all 3 cameras "mounted" on the car.
 
 ![alt text](./documentation/steering-distribution-augmented-all-cameras-0-removed.png)
 
+Following histogram shows the distribution after data augmentation as well as flipped images.
+
 ![alt text](./documentation/steering-distribution-augmented-all-cameras-flips-0-removed.png)
 
-#### ii- Data Visualization:
+_Note that the mean and the standard deviation of the dataset is not centered around 0, something which we will deal with in our pipeline by normalizing the dataset._
 
+#### ii- Data Visualization:
 
 | Source Code Reference    |  |
 |:-----------|:-------------|
 | File  | `implementation/visualization.py`  |
 | Method  | `Visualization.visualize_features`      |
 
+Here, a few of the training images along with their flips are shown. As we can see, there is a lot of information in the frame which may not contribute in inferring the steering values and also potentially making the classifier training process slow.
 
 ![alt text](./documentation/data-exploration-1.png)
+
+![alt text](./documentation/data-exploration-4.png)
 
 ![alt text](./documentation/data-exploration-2.png)
 
 ![alt text](./documentation/data-exploration-3.png)
 
-![alt text](./documentation/data-exploration-4.png)
 
-
-#### iii- Cropping:
+#### iii- Normalization and Cropping:
 
 | Source Code Reference    |  |
 |:-----------|:-------------|
 | File  | `implementation/visualization.py`  |
 | Method  | `Visualization.visualize_roi`      |
+| File  | `implementation/classifier.py`  |
+| Method  | `classifier.implement_classifier`      |
+
+As can be seen from the histograms, the dataset is not normalized i.e the mean is not around 0 and standard deviation is not around 1.
+
+The data distribution before and after the normalization is as follows:
+
+
+| Before Normalization    |  | After Normalization| |
+|:-----------|:-------------|:-----------|:-------------|
+| Mean  |  8.184-06 |	Mean  |  1.653e-18 |	
+| Standard Deviation  |   0.229   | Standard Deviation  |   0.999   |
+
+
+Each image contains the parts are not really very useful for training the classifier and can be removed to speed up the training processing. 
+
+For example, the sky, hills and trees in the consecutive frames remain same and is something which do not contribute in inferring the steering values from the images.
+
+We can remove these features from the images by defining the Region of Interest `ROI`. 
+
+Normalization and cropping steps are part of the `Keras` model by adding a cropping layer. The advantage being part of the model is that it can parallelized on the GPU.
 
 ![alt text](./documentation/ROI-1.png)
 
