@@ -1,4 +1,4 @@
-# Behaviour Cloning using Deep Neural Network
+# Behaviour Cloning using Deep Neural Network:
 
 
 | Note    | |
@@ -85,7 +85,7 @@ Here are a few images from training dataset:
 #### iii- Normalization and Cropping:
 
 | Source Code Reference    |  ||
-|:-----------|:-------------|
+|:-----------|:-------------|:-----------|
 | File  | `implementation/visualization.py`  |`implementation/classifier.py`|
 | Method  | `Visualization.visualize_roi`      |`classifier.implement_classifier`|
 
@@ -94,10 +94,14 @@ As can be seen from the histograms, the dataset is not normalized i.e the mean i
 The data distribution before and after the normalization is as follows:
 
 
-| Before Normalization    |  | After Normalization| |
-|:-----------|:-------------|:-----------|:-------------|
-| Mean  |  `8.184e-06` |	Mean  |  `1.653e-18` |	
-| Standard Deviation  |   `0.229`   | Standard Deviation  |   `0.999`   |
+| Normalization    |  | 
+|:-----------|:-------------|
+| __Before__:| |
+| Mean  |  `8.184e-06` |		
+| Standard Deviation  |   `0.229`   |
+| __After__: | |
+| Mean  |  `1.653e-18` |		
+| Standard Deviation  |   `0.999`   | 
 
 
 Each image contains the parts which are not really very useful for training the classifier and can be removed to speed up the training processing. 
